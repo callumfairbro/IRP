@@ -1,0 +1,36 @@
+# ignore database files
+*.sql
+*.sql.gz
+
+# ignore temporary files
+*.*~
+
+# ignore sites directory
+web/sites
+
+# ignore dependencies managed with Composer
+vendor/
+web/core/
+web/modules/contrib/
+web/themes/contrib/
+web/profiles/contrib/
+web/libraries/
+
+# archives
+*.7z
+*.dmg
+*.gz
+*.bz2
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+*.tgz
+
+# logs
+.log
+
+# misc
+/.editorconfig
+/.gitattributes

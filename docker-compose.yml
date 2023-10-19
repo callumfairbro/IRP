@@ -1,0 +1,26 @@
+version: '3.1'
+
+services:
+  drupal:
+    image: drupal:latest
+    container_name: drupal-irp
+    ports:
+      - 80
+    volumes:
+      - ./:/opt/drupal/
+    restart: always
+
+  mysql:
+    image: mysql:8-debian
+    container_name: mysql-irp
+    environment:
+      MYSQL_ROOT_PASSWORD: drupal
+      MYSQL_DATABASE: drupal
+      MYSQL_USER: drupal
+      MYSQL_PASSWORD: drupal
+    volumes:
+      - mysql:/var/lib/mysql
+    restart: always
+
+volumes:
+  mysql:
