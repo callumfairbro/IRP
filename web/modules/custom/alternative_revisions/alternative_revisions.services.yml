@@ -1,0 +1,4 @@
+services:
+  alternative_revisions.revisions_manager:
+    class: Drupal\alternative_revisions\RevisionsManager
+    arguments: ['@database', '@entity_type.manager', '@config.factory']

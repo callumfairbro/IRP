@@ -5,7 +5,7 @@ services:
     image: drupal:latest
     container_name: drupal-irp
     ports:
-      - 80
+      - 58098:80
     volumes:
       - ./:/opt/drupal/
     restart: always

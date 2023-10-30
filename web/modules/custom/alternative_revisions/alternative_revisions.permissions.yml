@@ -1,0 +1,12 @@
+'view alternative revisions':
+  title: 'View Revisions'
+  descriptions: 'Allow viewing of revisions'
+'restore alternative revisions':
+  title: 'Restore Revisions'
+  descriptions: 'Allow restoring of revisions'
+'view alternative deletions':
+  title: 'View Deletions'
+  descriptions: 'Allow viewing of deletions'
+'restore alternative deletions':
+  title: 'Restore Deletions'
+  descriptions: 'Allow restoring of deletions'

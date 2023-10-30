@@ -1,4 +1,4 @@
 type: module
 name: Alternative Revisions
-description: 'Alternative revision module.'
+description: 'Alternative content revision module.'
 core_version_requirement: ^9 || ^10
