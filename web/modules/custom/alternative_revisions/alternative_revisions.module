@@ -1,22 +1,11 @@
 <?php
 
-use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\Core\Entity\EntityInterface;
 
 function alternative_revisions_cron() {
-    $revisions_manager = \Drupal::service('alternative_revisions.revisions_manager');
-    if ($revisions_manager) {
-        $fields = FieldStorageConfig::loadMultiple();
-        if ($fields) {
-            foreach ($fields as $field_name => $field) {
-                $entity_type = $field->getTargetEntityTypeId();
-                if ($entity_type == "node") {
-                    $field_name = $field->getName();
-                    $table_name = "node_alt_revision__" . $field_name;
-                    $field_type = $field->getType();
-                    // $field_schema = $field->getSchema();
-                    $revisions_manager->createDatabaseTable($field_name, $field_type, $table_name);
-                }
-            }
-        }
-    }
+    
+}
+
+function alternative_revisions_node_presave(EntityInterface $node) {
+    
 }

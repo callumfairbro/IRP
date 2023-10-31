@@ -1,1 +1,36 @@
 <?php
+
+use Drupal\Core\Database\Database;
+use Drupal\field\Entity\FieldStorageConfig;
+
+/**
+ * Implements hook_install().
+ */
+function alternative_revisions_install() {
+    $revisions_manager = \Drupal::service('alternative_revisions.revisions_manager');
+    if ($revisions_manager) {
+        $fields = FieldStorageConfig::loadMultiple();
+        if ($fields) {
+            foreach ($fields as $field_name => $field) {
+                $entity_type = $field->getTargetEntityTypeId();
+                if ($entity_type == "node") {
+                    $field_name = $field->getName();
+                    $table_name = "node_alt_revision__" . $field_name;
+                    $field_type = $field->getType();
+                    $revisions_manager->createDatabaseTable($field_name, $field_type, $table_name);
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function alternative_revisions_uninstall() {
+    $database = Database::getConnection();
+    $tables = $database->query("SHOW TABLES LIKE :prefix", [':prefix' => "node_alt_revision_%"])->fetchCol();
+    foreach ($tables as $table) {
+        $database->delete($table)->execute();
+    }
+}
