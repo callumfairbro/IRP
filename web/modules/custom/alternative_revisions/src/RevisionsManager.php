@@ -32,6 +32,45 @@ class RevisionsManager {
         $this->schema = $this->database->schema();
     }
 
+    public function createNodeFieldDataTable() {
+        $spec = [
+            'description' => 'Node field data database table.',
+            'fields' => [
+            'id' => [
+                'type' => 'serial',
+                'not null' => TRUE,
+            ],
+            'nid' => [
+                'type' => 'int',
+                'not null' => TRUE,
+                'unsigned' => TRUE,
+            ],
+            'type' => [
+                'type' => 'varchar',
+                'length' => 32,
+                'not null' => TRUE,
+            ],
+            'title' => [
+                'type' => 'varchar',
+                'length' => 255,
+                'not null' => TRUE,
+            ],
+            'created' => [
+                'type' => 'int',
+                'not null' => TRUE,
+                'default' => 0,
+            ],
+            'revision_date' => [
+                'type' => 'int',
+                'not null' => TRUE,
+                'default' => 0,
+            ],
+            ],
+            'primary key' => ['id'],
+        ];
+        $this->schema->createTable('node_alt_revision_field_data', $spec);
+    }
+
     public function createDatabaseTable(String $field_name, String $field_type, String $table_name) {
         $spec = NULL;
         switch ($field_type) {
@@ -81,6 +120,10 @@ class RevisionsManager {
                 'type' => 'int',
                 'not null' => TRUE,
               ],
+              'deleted' => [
+                'type' => 'int',
+                'not null' => TRUE,
+              ],
               $field_name . '_value' => [
                 'type' => 'text',
                 'size' => 'big',
@@ -122,6 +165,10 @@ class RevisionsManager {
                 'not null' => TRUE,
               ],
               'delta' => [
+                'type' => 'int',
+                'not null' => TRUE,
+              ],
+              'deleted' => [
                 'type' => 'int',
                 'not null' => TRUE,
               ],
@@ -176,6 +223,10 @@ class RevisionsManager {
                 'type' => 'int',
                 'not null' => TRUE,
                 'unsigned' => TRUE,
+              ],
+              'deleted' => [
+                'type' => 'int',
+                'not null' => TRUE,
               ],
               $field_name . '_target_id' => [
                 'type' => 'int',
@@ -241,6 +292,10 @@ class RevisionsManager {
                 'not null' => TRUE,
                 'unsigned' => TRUE,
               ],
+              'deleted' => [
+                'type' => 'int',
+                'not null' => TRUE,
+              ],
               $field_name . '_target_id' => [
                 'type' => 'int',
                 'not null' => TRUE,
@@ -279,6 +334,10 @@ class RevisionsManager {
                 'type' => 'int',
                 'not null' => TRUE,
               ],
+              'deleted' => [
+                'type' => 'int',
+                'not null' => TRUE,
+              ],
               $field_name . '_value' => [
                 'type' => 'varchar',
                 'length' => 20,
@@ -293,6 +352,79 @@ class RevisionsManager {
             'primary key' => ['id'],
         ];
         return $spec;
+    }
+
+    public function checkForRevisions($node, $original) {
+        $nid = $node->id();
+        $saved_timestamp = $node->getChangedTime();
+        $fields = $node->getFields();
+        foreach ($fields as $field_name => $field) {
+            $revision_table_name = 'node_alt_revision__' . $field_name;
+            if ($this->schema->tableExists($revision_table_name)) {
+                $field_type = $field->getFieldDefinition()->getType();
+                switch ($field_type) {
+                    case 'text_long':
+                        $this->checkTextLong($nid, $field_name, $revision_table_name, $saved_timestamp);
+                        break;
+                }
+            }
+        }
+    }
+
+    private function checkTextLong($nid, $field_name, $revision_table_name, $saved_timestamp) {
+        $value_field = $field_name . '_value';
+        $format_field = $field_name . '_format';
+
+        $new_data_query = $this->database->select('node__' . $field_name, 'tl');
+        $new_data_query->fields('tl', ['entity_id', 'bundle',' delta', $value_field, $format_field]);
+        $new_data_query->condition('entity_id', $nid, '=');
+        $new_data = $new_data_query->execute()->fetchAll(); 
+
+        $original_data_query = $this->database->select($revision_table_name, 'tl');
+        $original_data_query->fields('tl', ['entity_id', 'bundle',' delta', $value_field, $format_field]);
+        $original_data_query->condition('entity_id', $nid, '=');
+        $original_data = $original_data_query->execute()->fetchAll();
+
+        if (!$original_data) {
+            foreach($new_data as $item) {
+                $insert_query = $this->database->insert($revision_table_name);
+                $insert_query->fields([
+                    'entity_id' => $item->entity_id,
+                    'bundle' => $item->bundle,
+                    'delta' => $item->delta,
+                    'deleted' => 0,
+                    $value_field => $item->$value_field,
+                    $format_field => $item->$format_field,
+                    'revision_date' => $saved_timestamp,
+                ]);
+                $insert_query->execute();
+            }   
+        } elseif (count($new_data) == count($original_data)) {
+            for ($i = 0; $i < count($new_data); $i++) {
+                $new = $new_data[$i];
+                $original = $original_data[$i];
+                if (
+                    $new->value_field != $original->value_field ||
+                    $new->value_field != $original->value_field
+                ) {
+                    $insert_query = $this->database->insert($revision_table_name);
+                    $insert_query->fields([
+                        'entity_id' => $new->entity_id,
+                        'bundle' => $new->bundle,
+                        'delta' => $new->delta,
+                        'deleted' => 0,
+                        $value_field => $new->$value_field,
+                        $format_field => $new->$format_field,
+                        'revision_date' => $saved_timestamp,
+                    ]);
+                    $insert_query->execute();
+                }
+            }
+        } elseif (count($new_data) < count($original_data)) {
+            
+        } elseif (count($new_data) > count($original_data)) {
+
+        }
     }
 
 }

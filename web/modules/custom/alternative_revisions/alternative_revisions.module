@@ -1,11 +1,32 @@
 <?php
 
+use Drupal\Core\Database\Database;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\EntityTypeInterface;
 
 function alternative_revisions_cron() {
     
 }
 
 function alternative_revisions_node_presave(EntityInterface $node) {
-    
+    $revisions_manager = \Drupal::service('alternative_revisions.revisions_manager');
+    $original = $node->original;
+    $revisions_manager->checkForRevisions($node, $original);
+}
+
+function alternative_revisions_entity_field_storage_info_alter(&$fields, EntityTypeInterface $entity_type) {
+    if ($entity_type->id() == 'node') {
+        $database = Database::getConnection();
+        $schema = $database->schema();
+        $revisions_manager = \Drupal::service('alternative_revisions.revisions_manager');
+        if ($revisions_manager) {
+            foreach ($fields as $field_name => $field) {
+                $table_name = 'node_alt_revision__' . $field_name;
+                if (!$schema->tableExists($table_name)) {
+                    $field_type = $field->getType();
+                    $revisions_manager->createDatabaseTable($field_name, $field_type, $table_name);
+                }
+            }
+        }
+    }
 }
