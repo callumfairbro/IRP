@@ -3,15 +3,32 @@
 use Drupal\Core\Database\Database;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\node\NodeInterface;
 
 function alternative_revisions_cron() {
     
 }
 
-function alternative_revisions_node_presave(EntityInterface $node) {
-    $revisions_manager = \Drupal::service('alternative_revisions.revisions_manager');
-    $original = $node->original;
-    $revisions_manager->checkForRevisions($node, $original);
+/**
+ * Implements hook_entity_insert().
+ */
+function alternative_revisions_entity_insert(EntityInterface $entity) {
+    if ($entity instanceof NodeInterface) {
+        $revisions_manager = \Drupal::service('alternative_revisions.revisions_manager');
+        $original = $entity->original;
+        $revisions_manager->checkForRevisions($entity, $original);
+    }
+}
+
+/**
+ * Implements hook_entity_update().
+ */
+function alternative_revisions_entity_update(EntityInterface $entity) {
+    if ($entity instanceof NodeInterface) {
+        $revisions_manager = \Drupal::service('alternative_revisions.revisions_manager');
+        $original = $entity->original;
+        $revisions_manager->checkForRevisions($entity, $original);
+    }
 }
 
 function alternative_revisions_entity_field_storage_info_alter(&$fields, EntityTypeInterface $entity_type) {
