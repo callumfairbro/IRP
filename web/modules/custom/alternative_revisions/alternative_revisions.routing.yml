@@ -1,26 +1,33 @@
 alternative_revisions.view_revisions:
-  path: '/alternative_revisions/{nid}'
+  path: '/admin/alternative-revisions/{nid}'
   defaults:
     _controller: '\Drupal\alternative_revisions\Controller\RevisionsController::viewRevisions'
     _title: 'View Revisions'
   requirements:
     _permission: 'view alternative revisions'
+alternative_revisions.view_revision:
+  path: '/admin/alternative-revisions/{nid}/{timestamp}'
+  defaults:
+    _controller: '\Drupal\alternative_revisions\Controller\RevisionsController::viewRevision'
+    _title: 'View Revision'
+  requirements:
+    _permission: 'view alternative revisions'
 alternative_revisions.restore_revision:
-  path: '/alternative_revisions/{nid}/restore/{revision_id}'
+  path: '/admin/alternative-revisions/{nid}/restore/{timestamp}'
   defaults:
     _controller: '\Drupal\alternative_revisions\Controller\RevisionsController::restoreRevision'
     _title: 'Restore Revisions'
   requirements:
     _permission: 'restore alternative revisions'
 alternative_revisions.view_deletions:
-  path: '/alternative_revisions/deletions'
+  path: '/admin/alternative-revisions/deletions'
   defaults:
     _controller: '\Drupal\alternative_revisions\Controller\RevisionsController::viewDeletions'
     _title: 'View Deletions'
   requirements:
     _permission: 'view alternative deletions'
 alternative_revisions.restore_deletion:
-  path: '/alternative_revisions/{nid}/restore'
+  path: '/admin/alternative-revisions/{nid}/restore'
   defaults:
     _controller: '\Drupal\alternative_revisions\Controller\RevisionsController::restoreDeletion'
     _title: 'Restore Deletion'

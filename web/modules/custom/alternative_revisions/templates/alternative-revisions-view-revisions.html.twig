@@ -1,0 +1,42 @@
+<table>
+    <thead>
+        <tr>
+            {% for header in headers %}
+                <th>{{ header }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for date, fields in data %}
+            {% for field_name, deltas in fields %}
+                {% for delta, values in deltas %}
+                    <tr>
+                        <td>{{ field_name }}</td>
+                        <td>{{ delta }}</td>
+                        <td>{{ values[0] }}</td>
+                        <td>
+                            <table>
+                                <thead>
+                                    <th>Value</th>
+                                    <th>Previous</th>
+                                    <th>New</th>
+                                </thead>
+                                <tbody>
+                                    {% for name, changes in values[1] %}
+                                        <tr>
+                                            <td>{{ name }}</td>
+                                            <td>{{ changes[0] }}</td>
+                                            <td>{{ changes[1] }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody> 
+                            </table>
+                        </td>
+                        <td>{{ date|date('F j, Y \\a\\t g:i A') }}</td>
+                        <td><a href="/admin/alternative-revisions/{{ nid }}">View</a></td>
+                    </tr>
+                {% endfor %}
+            {% endfor %}
+        {% endfor %}
+    </tbody>
+</table>

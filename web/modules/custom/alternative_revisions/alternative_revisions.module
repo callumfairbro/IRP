@@ -5,8 +5,26 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\node\NodeInterface;
 
+/**
+ * Implements hook_cron().
+ */
 function alternative_revisions_cron() {
     
+}
+
+/**
+ * Implements hook_theme().
+ */
+function alternative_revisions_theme($existing, $type, $theme, $path) {
+    return [
+        'alternative_revisions_view_revisions' => [
+            'variables' => [
+                'data' => NULL,
+                'headers' => NULL,
+                'nid' => NULL,
+            ]
+        ]
+    ];
 }
 
 /**
@@ -14,7 +32,7 @@ function alternative_revisions_cron() {
  */
 function alternative_revisions_entity_insert(EntityInterface $entity) {
     if ($entity instanceof NodeInterface) {
-        $revisions_manager = \Drupal::service('alternative_revisions.revisions_manager');
+        $revisions_manager = \Drupal::service('alternative_revisions.revision_update_manager');
         $original = $entity->original;
         $revisions_manager->checkForRevisions($entity, $original);
     }
@@ -25,17 +43,20 @@ function alternative_revisions_entity_insert(EntityInterface $entity) {
  */
 function alternative_revisions_entity_update(EntityInterface $entity) {
     if ($entity instanceof NodeInterface) {
-        $revisions_manager = \Drupal::service('alternative_revisions.revisions_manager');
+        $revisions_manager = \Drupal::service('alternative_revisions.revision_update_manager');
         $original = $entity->original;
         $revisions_manager->checkForRevisions($entity, $original);
     }
 }
 
+/**
+ * Implements hook_entity_field_storage_info_alter().
+ */
 function alternative_revisions_entity_field_storage_info_alter(&$fields, EntityTypeInterface $entity_type) {
     if ($entity_type->id() == 'node') {
         $database = Database::getConnection();
         $schema = $database->schema();
-        $revisions_manager = \Drupal::service('alternative_revisions.revisions_manager');
+        $revisions_manager = \Drupal::service('alternative_revisions.table_creation_manager');
         if ($revisions_manager) {
             foreach ($fields as $field_name => $field) {
                 $table_name = 'node_alt_revision__' . $field_name;

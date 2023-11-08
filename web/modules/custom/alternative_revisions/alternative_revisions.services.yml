@@ -1,4 +1,7 @@
 services:
-  alternative_revisions.revisions_manager:
-    class: Drupal\alternative_revisions\RevisionsManager
+  alternative_revisions.table_creation_manager:
+    class: Drupal\alternative_revisions\TableCreationManager
+    arguments: ['@database', '@entity_type.manager', '@config.factory']
+  alternative_revisions.revision_update_manager:
+    class: Drupal\alternative_revisions\RevisionUpdateManager
     arguments: ['@database', '@entity_type.manager', '@config.factory']

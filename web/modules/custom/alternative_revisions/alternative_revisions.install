@@ -9,7 +9,7 @@ use Drupal\field\Entity\FieldStorageConfig;
 function alternative_revisions_install() {
     $database = Database::getConnection();
     $schema = $database->schema();
-    $revisions_manager = \Drupal::service('alternative_revisions.revisions_manager');
+    $revisions_manager = \Drupal::service('alternative_revisions.table_creation_manager');
     if ($revisions_manager) {
         $revisions_manager->createNodeFieldDataTable();
         $fields = FieldStorageConfig::loadMultiple();
