@@ -1,0 +1,26 @@
+uuid: b8c96f1c-8d9d-4946-b47a-d4e64437dde5
+langcode: en-gb
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_paragraph_text
+    - filter.format.basic_html
+    - filter.format.full_html
+    - paragraphs.paragraphs_type.paragraph_text
+  module:
+    - text
+id: paragraph.paragraph_text.field_paragraph_text
+field_name: field_paragraph_text
+entity_type: paragraph
+bundle: paragraph_text
+label: 'Paragraph Text'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats:
+    - basic_html
+    - full_html
+field_type: text_long

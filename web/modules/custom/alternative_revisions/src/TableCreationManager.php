@@ -55,8 +55,13 @@ class TableCreationManager {
                 'length' => 255,
                 'not null' => TRUE,
             ],
+            'deleted' => [
+              'type' => 'int',
+              'not null' => TRUE,
+            ],
             'status' => [
-                'type' => 'tinyint',
+                'type' => 'int',
+                'size' => 'tiny',
                 'not null' => TRUE,
             ],
             'created' => [

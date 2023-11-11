@@ -1,0 +1,35 @@
+uuid: abfff1ef-b38b-4f68-b311-c0569b4a0e94
+langcode: en-gb
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.node.teaser
+    - field.field.node.page.field_basic_image
+    - field.field.node.page.field_date
+    - field.field.node.page.field_media_image
+    - field.field.node.page.field_paragraph
+    - field.field.node.page.field_remote_video
+    - field.field.node.page.field_test
+    - field.field.node.page.field_text
+    - node.type.page
+  module:
+    - user
+_core:
+  default_config_hash: 8BgdRtLbtQ0F__o0FHSH0Mx5fvXOra9tfT1GmNKbRYw
+id: node.page.teaser
+targetEntityType: node
+bundle: page
+mode: teaser
+content:
+  links:
+    weight: 101
+    region: content
+hidden:
+  field_basic_image: true
+  field_date: true
+  field_media_image: true
+  field_paragraph: true
+  field_remote_video: true
+  field_test: true
+  field_text: true
+  langcode: true

@@ -10,31 +10,27 @@
         {% for date, fields in data %}
             {% for field_name, deltas in fields %}
                 {% for delta, values in deltas %}
-                    <tr>
-                        <td>{{ field_name }}</td>
-                        <td>{{ delta }}</td>
-                        <td>{{ values[0] }}</td>
-                        <td>
-                            <table>
-                                <thead>
-                                    <th>Value</th>
-                                    <th>Previous</th>
-                                    <th>New</th>
-                                </thead>
-                                <tbody>
-                                    {% for name, changes in values[1] %}
-                                        <tr>
-                                            <td>{{ name }}</td>
-                                            <td>{{ changes[0] }}</td>
-                                            <td>{{ changes[1] }}</td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody> 
-                            </table>
-                        </td>
-                        <td>{{ date|date('F j, Y \\a\\t g:i A') }}</td>
-                        <td><a href="/admin/alternative-revisions/{{ nid }}">View</a></td>
-                    </tr>
+                    {% for name, changes in values[1] %}
+                        {% set rowspan = values[1]|length %}
+                        {% if loop.first %}
+                            <tr>
+                                <td rowspan={{ rowspan }}>{{ date|date('F j, Y \\a\\t g:i A') }}</td>
+                                <td rowspan={{ rowspan }}>{{ field_name }}</td>
+                                <td rowspan={{ rowspan }}>{{ delta }}</td>
+                                <td rowspan={{ rowspan }}>{{ values[0] }}</td>
+                                <td>{{ name }}</td>
+                                <td>{{ changes[0] }}</td>
+                                <td>{{ changes[1] }}</td>
+                                <td rowspan={{ rowspan }}><a href="/admin/alternative-revisions/{{ nid }}/{{ date }}">View</a>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td>{{ name }}</td>
+                                <td>{{ changes[0] }}</td>
+                                <td>{{ changes[1] }}</td>
+                            </tr>
+                        {% endif %}                       
+                    {% endfor %}
                 {% endfor %}
             {% endfor %}
         {% endfor %}
