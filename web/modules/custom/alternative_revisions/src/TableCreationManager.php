@@ -136,7 +136,7 @@ class TableCreationManager {
               $field_name . '_value' => [
                 'type' => 'text',
                 'size' => 'big',
-                'not null' => TRUE,
+                'not null' => FALSE,
               ],
               $field_name . '_format' => [
                 'type' => 'varchar',
@@ -184,7 +184,7 @@ class TableCreationManager {
               $field_name . '_value' => [
                 'type' => 'text',
                 'size' => 'big',
-                'not null' => TRUE,
+                'not null' => FALSE,
               ],
               $field_name . '_summary' => [
                 'type' => 'text',
@@ -239,7 +239,7 @@ class TableCreationManager {
               ],
               $field_name . '_target_id' => [
                 'type' => 'int',
-                'not null' => TRUE,
+                'not null' => FALSE,
                 'unsigned' => TRUE,
               ],
               $field_name . '_alt' => [
@@ -307,7 +307,7 @@ class TableCreationManager {
               ],
               $field_name . '_target_id' => [
                 'type' => 'int',
-                'not null' => TRUE,
+                'not null' => FALSE,
                 'unsigned' => TRUE,
               ],
               'revision_date' => [

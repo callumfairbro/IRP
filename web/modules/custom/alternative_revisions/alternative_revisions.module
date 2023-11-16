@@ -23,6 +23,14 @@ function alternative_revisions_theme($existing, $type, $theme, $path) {
                 'headers' => NULL,
                 'nid' => NULL,
             ]
+        ],
+        'alternative_revisions_view_revision' => [
+            'variables' => [
+                'data' => NULL,
+                'headers' => NULL,
+                'timestamp' => NULL,
+                'nid' => NULL,
+            ]
         ]
     ];
 }

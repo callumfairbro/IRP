@@ -812,7 +812,7 @@ class RevisionUpdateManager {
                     'bundle' => $original->bundle,
                     'delta' => $i,
                     'deleted' => 1,
-                    $target_id => '',
+                    $target_id => NULL,
                     'revision_date' => $saved_timestamp,
                 ]);
                 $insert_query->execute();
