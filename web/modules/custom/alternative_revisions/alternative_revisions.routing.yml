@@ -26,6 +26,13 @@ alternative_revisions.view_deletions:
     _title: 'View Deletions'
   requirements:
     _permission: 'view alternative deletions'
+alternative_revisions.view_deletion:
+  path: '/admin/alternative-revisions/deletion/{nid}'
+  defaults:
+    _controller: '\Drupal\alternative_revisions\Controller\RevisionsController::viewDeletion'
+    _title: 'View Deletion'
+  requirements:
+    _permission: 'view alternative deletions'
 alternative_revisions.restore_deletion:
   path: '/admin/alternative-revisions/{nid}/restore'
   defaults:

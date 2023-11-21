@@ -5,6 +5,7 @@ namespace Drupal\alternative_revisions\Controller;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Url;
+use Drupal\field\Entity\FieldConfig;
 use Drupal\node\Entity\Node;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -42,7 +43,7 @@ class RevisionsController extends ControllerBase implements ContainerInjectionIn
         $data = [];
         $node = Node::load($nid);
         if (!$node) {
-            return;
+            return $this->redirect('<front>');
         }
         $field_definitions = $node->getFieldDefinitions();
         $schema = $this->database->schema();
@@ -161,7 +162,7 @@ class RevisionsController extends ControllerBase implements ContainerInjectionIn
 
         $node = Node::load($nid);
         if (!$node) {
-            return;
+            return $this->redirect('<front>');
         }
         $field_definitions = $node->getFieldDefinitions();
         $schema = $this->database->schema();
@@ -223,7 +224,7 @@ class RevisionsController extends ControllerBase implements ContainerInjectionIn
     public function restoreRevision($nid, $timestamp) {
         $node = Node::load($nid);
         if (!$node) {
-            return;
+            return $this->redirect('<front>');
         }
         $field_definitions = $node->getFieldDefinitions();
         $schema = $this->database->schema();
@@ -277,11 +278,156 @@ class RevisionsController extends ControllerBase implements ContainerInjectionIn
     }
 
     public function viewDeletions() {
+        $deleted_nodes_query = $this->database->select('node_alt_revision_field_data', 'fd');
+        $deleted_nodes_query->condition('deleted', 1);
+        $deleted_nodes_query->fields('fd', ['nid', 'type', 'title', 'created', 'revision_date']);
+        $deleted_nodes_data = $deleted_nodes_query->execute()->fetchAll();
 
+        $build['#headers'] = ['NID', 'Title', 'Type', 'Created', 'Deleted', 'View'];
+        $build['#data'] = $deleted_nodes_data;
+        $build['#theme'] = 'alternative_revisions_view_deletions';
+        return $build;
+
+    }
+
+    public function viewDeletion($nid) {
+
+        // Check node is deleted
+        $deleted_check_query = $this->database->select('node_alt_revision_field_data', 'fd');
+        $deleted_check_query->fields('fd', ['nid']);
+        $deleted_check_query->condition('nid', $nid, '=');
+        $deleted_check_query->condition('deleted', 1, '=');
+        $result = $deleted_check_query->execute()->fetchAll();
+        if(!$result) {
+            $messenger = \Drupal::service('messenger');
+            $messenger->addMessage('Content is not deleted!');
+            return $this->redirect('<front>');
+        }
+
+        $data = [];
+        $deleted_node_data = $this->getNodeData($nid);
+        $data['node_data']['deleted'][] = $deleted_node_data;
+        $data['node_data']['data_rows'] = 5;
+        
+        $content_type = $data['node_data']['deleted'][0]['type'];
+        if (!$content_type) {
+            return $this->redirect('<front>');
+        }
+        $field_definitions = \Drupal::service('entity_field.manager')->getFieldDefinitions('node', $content_type);
+        $schema = $this->database->schema();
+        foreach ($field_definitions as $key => $definition) {
+            $field_type = $definition->getType();
+            $revision_table_name = 'node_alt_revision__' . $key;
+            if (str_starts_with($key, 'field_') && $schema->tableExists($revision_table_name)) {
+                switch ($field_type) {
+                    case 'text_with_summary':
+                        $deleted_data = $this->getTextSummaryData($nid, $key);
+                        $data_rows = 3;
+                        break; 
+                    case 'text_long':
+                        $deleted_data = $this->getTextLongData($nid, $key);
+                        $data_rows = 2;
+                        break;
+                    case 'image':
+                        $deleted_data = $this->getBasicImageData($nid, $key);
+                        $data_rows = 5;
+                        break;
+                    case 'datetime':
+                        $deleted_data = $this->getDateTimeData($nid, $key);
+                        $data_rows = 1;
+                        break;
+                    case 'entity_reference':
+                        $deleted_data = $this->getEntityReferenceData($nid, $key);
+                        $data_rows = 1;
+                        break;
+                }     
+                $data[$key]['deleted'] = $deleted_data;
+                $data[$key]['data_rows'] = $data_rows;
+            }            
+        }
+        
+        $build['#headers'] = ['Field', 'Delta', 'Data', 'Deleted content'];
+        $build['#data'] = $data;
+        $build['#nid'] = $nid;
+        $build['#theme'] = 'alternative_revisions_view_deletion';
+        return $build;
     }
 
     public function restoreDeletion($nid) {
 
+        // Check node is deleted
+        $deleted_check_query = $this->database->select('node_alt_revision_field_data', 'fd');
+        $deleted_check_query->fields('fd', ['nid']);
+        $deleted_check_query->condition('nid', $nid, '=');
+        $deleted_check_query->condition('deleted', 1, '=');
+        $result = $deleted_check_query->execute()->fetchAll();
+        if(!$result) {
+            $messenger = \Drupal::service('messenger');
+            $messenger->addMessage('Content is not deleted!');
+            return $this->redirect('<front>');
+        }
+
+        $deleted_node_data = $this->getNodeData($nid);
+        $content_type = $deleted_node_data['type'];
+        if (!$content_type) {
+            return $this->redirect('<front>');
+        }
+        $node = Node::create(['type' => $content_type]);
+
+        $node->set('nid', $nid);
+        foreach ($deleted_node_data as $key => $value) {
+            $node->set($key, $value);
+        }
+
+        $field_definitions = \Drupal::service('entity_field.manager')->getFieldDefinitions('node', $content_type);
+        foreach ($field_definitions as $key => $definition) {
+            $revision_table_name = 'node_alt_revision__' . $key;
+            $schema = $this->database->schema();
+            if (str_starts_with($key, 'field_') && $schema->tableExists($revision_table_name)) {
+                $field_type = $definition->getType();
+                switch ($field_type) {
+                    case 'text_with_summary':
+                        $revision_data = $this->getTextSummaryData($nid, $key);
+                        $node->set($key, $revision_data);
+                        break; 
+                    case 'text_long':
+                        $revision_data = $this->getTextLongData($nid, $key);
+                        $node->set($key, $revision_data);
+                        break;
+                    case 'image':
+                        $revision_data = $this->getBasicImageData($nid, $key);
+                        $node->set($key, $revision_data);
+                        break;
+                    case 'datetime':
+                        $revision_data = $this->getDateTimeData($nid, $key);
+                        $node->set($key, $revision_data);
+                        break;
+                    case 'entity_reference':
+                        $revision_data = $this->getEntityReferenceData($nid, $key);
+                        $node->set($key, $revision_data);
+                        break;
+                }
+            }
+        }
+        $node->save();
+
+        $update_deleted_query = $this->database->update('node_alt_revision_field_data');
+        $update_deleted_query->fields(['deleted' => 0]);
+        $update_deleted_query->condition('nid', $nid, '=');
+        $update_deleted_query->condition('deleted', 1, '=');
+        $update_deleted_query->execute();
+
+        // Redirect to previous page
+        $current_path = \Drupal::service('path.current')->getPath();
+        $current_url = Url::fromUri('internal:' . $current_path);
+        $referer = \Drupal::request()->headers->get('referer');
+        $messenger = \Drupal::service('messenger');
+        $messenger->addMessage('Deleted content restored!');
+        if (!empty($referer) && $referer != $current_url->toString()) {
+            return new RedirectResponse($referer);
+        } else {
+            return $this->redirect('<front>');
+        }
     }
 
     private function getNodeData($nid, $timestamp = NULL) {

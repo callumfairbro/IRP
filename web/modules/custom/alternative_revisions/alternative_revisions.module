@@ -3,14 +3,8 @@
 use Drupal\Core\Database\Database;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\node\Entity\Node;
 use Drupal\node\NodeInterface;
-
-/**
- * Implements hook_cron().
- */
-function alternative_revisions_cron() {
-    
-}
 
 /**
  * Implements hook_theme().
@@ -29,6 +23,19 @@ function alternative_revisions_theme($existing, $type, $theme, $path) {
                 'data' => NULL,
                 'headers' => NULL,
                 'timestamp' => NULL,
+                'nid' => NULL,
+            ]
+        ],
+        'alternative_revisions_view_deletions' => [
+            'variables' => [
+                'data' => NULL,
+                'headers' => NULL,
+            ]
+        ],
+        'alternative_revisions_view_deletion' => [
+            'variables' => [
+                'data' => NULL,
+                'headers' => NULL,
                 'nid' => NULL,
             ]
         ]
@@ -76,3 +83,49 @@ function alternative_revisions_entity_field_storage_info_alter(&$fields, EntityT
         }
     }
 }
+
+/**
+ * Implements hook_entity_delete().
+ */
+function alternative_revisions_entity_delete(EntityInterface $entity) {
+
+    if ($entity instanceof Node) {
+        $database = Database::getConnection();
+        $nid = $entity->id();
+        $node_data_query = $database->select('node_alt_revision_field_data', 'nd');
+        $node_data_query->condition('nid', $nid, '=');
+        $node_data_query->fields('nd', ['nid', 'type', 'title', 'status', 'created']);
+        $result = $node_data_query->execute()->fetchAll();
+        if ($result) {
+            $object = reset($result);
+            $deleted_data_query = $database->insert('node_alt_revision_field_data');
+            $deleted_data_query->fields([
+                'nid' => $object->nid,
+                'type' => $object->type,
+                'title' => $object->title,
+                'status' => $object->status,
+                'created' => $object->created,
+                'deleted' => 1,
+                'revision_date' => time()
+            ]);
+            $deleted_data_query->execute();
+        }
+    }
+
+}
+
+/**
+ * Implements hook_menu_local_tasks_alter().
+ */
+function alternative_revisions_menu_local_tasks_alter(&$data, $route_name) {
+    if ($route_name == 'entity.node.canonical') {
+        $node = \Drupal::routeMatch()->getParameter('node');
+        if ($node instanceof \Drupal\node\NodeInterface) {
+            $nid = $node->id();
+            $data['tabs'][0]['output'][] = array(
+                '#markup' => '<li class="tabs__tab"><a class="tabs__link js-tabs-link" href="/admin/alternative-revisions/' . $nid . '">Alternative Revisions</a></li>',
+                '#weight' => 500,
+            );
+        }
+    }
+  }

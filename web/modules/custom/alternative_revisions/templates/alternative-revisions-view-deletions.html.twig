@@ -1,0 +1,21 @@
+<table>
+    <thead>
+        <tr>
+            {% for header in headers %}
+                <th>{{ header }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for node in data %}
+            <tr>
+                <td>{{ node.nid }}</td>
+                <td>{{ node.title }}</td>
+                <td>{{ node.type }}</td>
+                <td>{{ node.created|date('F j, Y \\a\\t g:i A') }}</td>
+                <td>{{ node.revision_date|date('F j, Y \\a\\t g:i A') }}</td>
+                <td><a href="/admin/alternative-revisions/deletion/{{ node.nid }}">View</a>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

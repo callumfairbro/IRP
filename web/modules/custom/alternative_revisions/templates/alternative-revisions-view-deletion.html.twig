@@ -1,0 +1,45 @@
+<h1>{{ data['node_data']['current'][0]['title'] }}</h1>
+<h4> Deleted date: {{ timestamp|date('F j, Y \\a\\t g:i A') }}</h4>
+<a href="/admin/alternative-revisions/{{nid}}/restore">Restore Deleted Content</a>
+<a href="/admin/alternative-revisions/deletions">View All Deleted Content</a>
+<table>
+    <thead>
+        <tr>
+            {% for header in headers %}
+                <th>{{ header }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for field_name, field_data in data %}
+            {% set deltas = field_data['deleted']|length %}
+            {% set total_rows = field_data['data_rows'] * deltas %}
+            {% set data_rows = field_data['data_rows'] %}
+            {% for i in 0..deltas - 1 %}
+                {% for j in 0..data_rows - 1 %}
+                    {% set keys = field_data['deleted'][i]|keys %}
+                    {% set key = keys[j] %}
+                    {% if i == 0 and j == 0 %}
+                        <tr>
+                            <td rowspan={{ total_rows }}>{{ field_name }}</td>
+                            <td rowspan={{ data_rows }}>{{ i }}</td>
+                            <td>{{ key }}</td>
+                            <td>{{ field_data['deleted'][i][key] }}</td>
+                        </tr>
+                    {% elseif j == 0 %}
+                        <tr>
+                            <td rowspan={{ data_rows }}>{{ i }}</td>
+                            <td>{{ key }}</td>
+                            <td>{{ field_data['deleted'][i][key] }}</td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td>{{ key }}</td>
+                            <td>{{ field_data['deleted'][i][key] }}</td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+        {% endfor %}
+    </tbody>
+</table>
