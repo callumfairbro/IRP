@@ -38,6 +38,12 @@ function alternative_revisions_theme($existing, $type, $theme, $path) {
                 'headers' => NULL,
                 'nid' => NULL,
             ]
+        ],
+        'alternative_revisions_blockchain_integrity' => [
+            'variables' => [
+                'data' => NULL,
+                'headers' => NULL,
+            ]
         ]
     ];
 }
@@ -61,6 +67,69 @@ function alternative_revisions_entity_update(EntityInterface $entity) {
         $revisions_manager = \Drupal::service('alternative_revisions.revision_update_manager');
         $original = $entity->original;
         $revisions_manager->checkForRevisions($entity, $original);
+
+        $nid = $entity->id();
+        $last_revision = $entity->getChangedTime();
+        $new_data = [];
+        
+        $database = Database::getConnection();
+        $tables = $database->query("SHOW TABLES LIKE :prefix", [':prefix' => "node_alt_revision__%"])->fetchCol();
+        
+        if ($tables) {
+            foreach ($tables as $table) {
+                $new_data_query = $database->select($table, 't');
+                if ($table == 'node_alt_revision_field_data') {
+                    $new_data_query->condition('nid', $nid, '=');
+                } else {
+                    $new_data_query->condition('entity_id', $nid, '=');
+                }
+                $new_data_query->condition('revision_date', $last_revision, '=');
+                $new_data_query->fields('t');
+                $new_data_result = $new_data_query->execute()->fetchAll();
+                if ($new_data_result) {
+                    $new_data[] = $new_data_result;
+                }
+            }
+        }
+
+        if ($new_data) {
+            try {
+                Database::setActiveConnection('blockchain');
+                $blockchain_database = Database::getConnection();
+            } catch (Exception $e) {
+                Database::setActiveConnection();
+                \Drupal::logger('alternative_revisions')->error($e);
+            }
+
+            $blockchain_data_query = $blockchain_database->select('blockchain_data', 'bc');
+            $blockchain_data_query->condition('nid', $nid, '=');
+            $blockchain_data_query->condition('timestamp', $last_revision, '<');
+            $blockchain_data_query->fields('bc', ['hash']);
+            $blockchain_data_query->orderBy('timestamp', 'DESC');
+            $blockchain_data_query->range(0,1);
+            $blockhain_data_results = $blockchain_data_query->execute()->fetchCol();
+
+            if ($blockhain_data_results) {
+                $previous_hash = reset($blockhain_data_results);
+                $hash_data = [$previous_hash, $new_data];
+                $serialized_data = serialize($hash_data);
+                $hash = hash('sha256', $serialized_data);
+            } else {
+                $serialized_data = serialize($new_data);
+                $hash = hash('sha256', $serialized_data);
+            }
+
+            if (isset($hash)) {
+                $insert_query = $blockchain_database->insert('blockchain_data');
+                $insert_query->fields([
+                    'nid' => $nid,
+                    'hash' => $hash,
+                    'timestamp' => $last_revision,
+                ]);
+                $insert_query->execute();
+            }
+            Database::setActiveConnection();
+        }
     }
 }
 
@@ -128,4 +197,4 @@ function alternative_revisions_menu_local_tasks_alter(&$data, $route_name) {
             );
         }
     }
-  }
+}

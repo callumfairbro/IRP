@@ -9,9 +9,9 @@ use Drupal\field\Entity\FieldStorageConfig;
 function alternative_revisions_install() {
     $database = Database::getConnection();
     $schema = $database->schema();
-    $revisions_manager = \Drupal::service('alternative_revisions.table_creation_manager');
-    if ($revisions_manager) {
-        $revisions_manager->createNodeFieldDataTable();
+    $table_creation_manager = \Drupal::service('alternative_revisions.table_creation_manager');
+    if ($table_creation_manager) {
+        $table_creation_manager->createNodeFieldDataTable();
         $fields = FieldStorageConfig::loadMultiple();
         if ($fields) {
             foreach ($fields as $field_name => $field) {
@@ -21,11 +21,12 @@ function alternative_revisions_install() {
                     $field_type = $field->getType();
                     $table_name = "node_alt_revision__" . $field_name;
                     if (!$schema->tableExists($table_name)) {
-                        $revisions_manager->createDatabaseTable($field_name, $field_type, $table_name);
+                        $table_creation_manager->createDatabaseTable($field_name, $field_type, $table_name);
                     }
                 }
             }
         }
+        $table_creation_manager->createBlockchainTable();
     }
 }
 
@@ -40,3 +41,10 @@ function alternative_revisions_uninstall() {
     }
 }
 
+/**
+ * Implements hook_update_N().
+ */
+function alternative_revisions_update_9001() {
+    $table_creation_manager = \Drupal::service('alternative_revisions.table_creation_manager');
+    $table_creation_manager->createBlockchainTable();
+}

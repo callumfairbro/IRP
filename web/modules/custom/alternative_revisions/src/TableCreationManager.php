@@ -4,7 +4,10 @@ namespace Drupal\alternative_revisions;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Database\Connection;
+use Drupal\Core\Database\Database;
 use Drupal\Core\Entity\EntityTypeManager;
+use Drupal\migrate\Plugin\migrate\process\Explode;
+use Exception;
 
 class TableCreationManager {
 
@@ -362,5 +365,51 @@ class TableCreationManager {
         ];
         return $spec;
     }
+
+    public function createBlockchainTable() {
+      try {
+        Database::setActiveConnection('blockchain');
+        $database = Database::getConnection();
+        $schema = $database->schema();
+        if (!$schema->tableExists('blockchain_data')) {
+          $spec = $this->getBlockchainSpec();
+          $schema->createTable('blockchain_data', $spec);
+          Database::setActiveConnection();
+        }
+      } catch (Exception $e) {
+        Database::setActiveConnection();
+        \Drupal::logger('alternative_revisions')->error($e);
+      }
+     
+    }
+
+    private function getBlockchainSpec() {
+      $spec = [
+        'description' => 'Blockchain data database table.',
+        'fields' => [
+          'id' => [
+            'type' => 'serial',
+            'not null' => TRUE,
+          ],
+          'nid' => [
+            'type' => 'int',
+            'not null' => TRUE,
+            'unsigned' => TRUE,
+          ],
+          'hash' => [
+            'type' => 'varchar',
+            'length' => 255,
+            'not null' => TRUE,
+          ],
+          'timestamp' => [
+            'type' => 'int',
+            'not null' => TRUE,
+            'default' => 0,
+          ],
+        ],
+        'primary key' => ['id'],
+      ];
+      return $spec;
+  }
 
 }

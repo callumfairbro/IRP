@@ -40,3 +40,10 @@ alternative_revisions.restore_deletion:
     _title: 'Restore Deletion'
   requirements:
     _permission: 'restore alternative deletions'
+alternative_revisions.blockchain_integrity:
+  path: '/admin/alternative-revisions/blockchain/{nid}'
+  defaults:
+    _controller: '\Drupal\alternative_revisions\Controller\BlockchainController::checkBlockchainIntegrity'
+    _title: 'Check Blockchain Integrity'
+  requirements:
+    _permission: 'check blockchain integrity'

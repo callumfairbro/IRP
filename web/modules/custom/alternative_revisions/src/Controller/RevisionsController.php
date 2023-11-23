@@ -43,6 +43,8 @@ class RevisionsController extends ControllerBase implements ContainerInjectionIn
         $data = [];
         $node = Node::load($nid);
         if (!$node) {
+            $messenger = \Drupal::service('messenger');
+            $messenger->addMessage('Node does not exist!');
             return $this->redirect('<front>');
         }
         $field_definitions = $node->getFieldDefinitions();
@@ -162,6 +164,8 @@ class RevisionsController extends ControllerBase implements ContainerInjectionIn
 
         $node = Node::load($nid);
         if (!$node) {
+            $messenger = \Drupal::service('messenger');
+            $messenger->addMessage('Node does not exist!');
             return $this->redirect('<front>');
         }
         $field_definitions = $node->getFieldDefinitions();
@@ -224,6 +228,8 @@ class RevisionsController extends ControllerBase implements ContainerInjectionIn
     public function restoreRevision($nid, $timestamp) {
         $node = Node::load($nid);
         if (!$node) {
+            $messenger = \Drupal::service('messenger');
+            $messenger->addMessage('Node does not exist!');
             return $this->redirect('<front>');
         }
         $field_definitions = $node->getFieldDefinitions();
