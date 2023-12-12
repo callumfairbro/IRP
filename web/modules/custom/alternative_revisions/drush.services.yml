@@ -1,0 +1,6 @@
+services:
+  drush_custom_commands.commands:
+    class: \Drupal\alternative_revisions\Commands\DrushCustomCommands
+    tags:
+      - { name: drush.command }
+    arguments: ['@entity_type.manager']

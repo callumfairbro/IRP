@@ -1,6 +1,7 @@
 <?php
 
 use Drupal\Core\Database\Database;
+use Drupal\Core\Database\Query\AlterableInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\node\Entity\Node;
@@ -197,4 +198,8 @@ function alternative_revisions_menu_local_tasks_alter(&$data, $route_name) {
             );
         }
     }
+}
+
+function alternative_revisions_query_sort_by_random_alter(AlterableInterface $query) {
+    $query->orderRandom();
 }
