@@ -5,9 +5,6 @@
 # ignore temporary files
 *.*~
 
-# ignore sites directory
-web/sites
-
 # ignore dependencies managed with Composer
 vendor/
 web/core/
