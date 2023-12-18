@@ -319,7 +319,7 @@ class TableCreationManager {
                 'default' => 0,
               ],
             ],
-            'primary key' => ['id'],
+            'primary key' => ['id','entity_id','delta'],
         ];
         return $spec;
     }

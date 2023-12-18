@@ -287,6 +287,7 @@ class RevisionsController extends ControllerBase implements ContainerInjectionIn
         $deleted_nodes_query = $this->database->select('node_alt_revision_field_data', 'fd');
         $deleted_nodes_query->condition('deleted', 1);
         $deleted_nodes_query->fields('fd', ['nid', 'type', 'title', 'created', 'revision_date']);
+        $deleted_nodes_query->orderBy('revision_date', 'DESC');
         $deleted_nodes_data = $deleted_nodes_query->execute()->fetchAll();
 
         $build['#headers'] = ['NID', 'Title', 'Type', 'Created', 'Deleted', 'View'];

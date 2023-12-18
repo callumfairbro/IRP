@@ -50,6 +50,15 @@ function alternative_revisions_theme($existing, $type, $theme, $path) {
 }
 
 /**
+ * Implements hook_node_presave().
+ */
+function alternative_revisions_entity_presave(EntityInterface $entity) {
+    if ($entity instanceof NodeInterface) {
+        \Drupal::logger('time_save')->notice("Start time: " . time() . "; Node: " . $entity->id());
+    }
+}
+
+/**
  * Implements hook_entity_insert().
  */
 function alternative_revisions_entity_insert(EntityInterface $entity) {
@@ -131,6 +140,8 @@ function alternative_revisions_entity_update(EntityInterface $entity) {
             }
             Database::setActiveConnection();
         }
+
+        \Drupal::logger('time_save')->notice("End time: " . time() . "; Node: " . $entity->id());   
     }
 }
 
@@ -195,6 +206,10 @@ function alternative_revisions_menu_local_tasks_alter(&$data, $route_name) {
             $data['tabs'][0]['output'][] = array(
                 '#markup' => '<li class="tabs__tab"><a class="tabs__link js-tabs-link" href="/admin/alternative-revisions/' . $nid . '">Alternative Revisions</a></li>',
                 '#weight' => 500,
+            );
+            $data['tabs'][0]['output'][] = array(
+                '#markup' => '<li class="tabs__tab"><a class="tabs__link js-tabs-link" href="/admin/alternative-revisions/blockchain/' . $nid . '">Blockchain Validation</a></li>',
+                '#weight' => 501,
             );
         }
     }
