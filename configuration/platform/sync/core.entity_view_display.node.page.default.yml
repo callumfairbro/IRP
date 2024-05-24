@@ -6,13 +6,11 @@ dependencies:
     - field.field.node.page.field_basic_image
     - field.field.node.page.field_date
     - field.field.node.page.field_media_image
-    - field.field.node.page.field_paragraph
     - field.field.node.page.field_remote_video
     - field.field.node.page.field_text
     - node.type.page
   module:
     - datetime
-    - entity_reference_revisions
     - image
     - text
     - user
@@ -51,15 +49,6 @@ content:
       link: false
     third_party_settings: {  }
     weight: 3
-    region: content
-  field_paragraph:
-    type: entity_reference_revisions_entity_view
-    label: hidden
-    settings:
-      view_mode: default
-      link: ''
-    third_party_settings: {  }
-    weight: 5
     region: content
   field_remote_video:
     type: entity_reference_entity_view
